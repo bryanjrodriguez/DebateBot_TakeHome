@@ -1,21 +1,19 @@
 name: Kopi Debate API CD
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
+  workflow_run:
+    workflows: ["Kopi Debate API CI"]
+    types:
+      - completed
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+  
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: production  
     defaults:
       run:
         working-directory: ./kopi-debate-api
