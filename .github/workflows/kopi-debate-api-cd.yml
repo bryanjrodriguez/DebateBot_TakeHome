@@ -27,9 +27,10 @@ jobs:
           path: .
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Load Docker image
+      - name: Extract and load Docker image
         run: |
-          docker load < ../kopi-debate-api.tar
+          unzip kopi-debate-api-image.zip
+          docker load < kopi-debate-api.tar
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
