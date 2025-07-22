@@ -7,3 +7,5 @@ pydantic
 google-generativeai
 ddtrace[fastapi]  
 datadog 
+pytest
+pytest-asyncio
