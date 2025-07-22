@@ -24,12 +24,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: kopi-debate-api-image
-          path: ./kopi-debate-api
+          path: .
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: Load Docker image
         run: |
-          docker load < kopi-debate-api.tar
+          docker load < ../kopi-debate-api.tar
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

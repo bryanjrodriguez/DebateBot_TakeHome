@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 from app.features.chat.models.chat_request import ChatMessageRequest
-from app.features.chat.models.chat_response import ChatMessageResponse, ChatSummary
+from app.features.chat.models.chat_response import ChatMessageResponse, ChatSummary, DeleteResponse
 from app.core.container import Container
+from app.core.respose_handler import handle_result
 from typing import List
 
 router = APIRouter()
@@ -10,24 +11,16 @@ chat_service = container.chat_service()
 
 @router.post("/chat/message", response_model=ChatMessageResponse)
 def post_message(request: ChatMessageRequest):
-    return chat_service.post_message(request.conversation_id, request.message)
+    return handle_result(lambda: chat_service.post_message(request.conversation_id, request.message))
 
 @router.get("/chat/chats", response_model=List[ChatSummary])
 def get_chats():
-    chats = chat_service.get_chats()
-    return [
-        ChatSummary(
-            conversation_id=chat["conversation_id"],
-            topic=chat["topic"],
-            created_at=chat["created_at"]
-        ) for chat in chats
-    ]
+    return handle_result(chat_service.get_chats)
 
-@router.get("/chat/history/{conversation_id}")
+@router.get("/chat/history/{conversation_id}", response_model=List[ChatMessageResponse])
 def get_history(conversation_id: str, limit: int = Query(5, ge=1)):
-    return {"conversation_id": conversation_id, "message": chat_service.get_history(conversation_id, limit=limit, desc=False)}
+    return handle_result(lambda: chat_service.get_history(conversation_id, limit=limit, desc=False))
 
-@router.delete("/chat/{conversation_id}")
+@router.delete("/chat/{conversation_id}", response_model=DeleteResponse)
 def delete_chat(conversation_id: str):
-    chat_service.delete_chat(conversation_id)
-    return {"message": "Chat deleted"} 
+    return handle_result(lambda: chat_service.delete_chat(conversation_id)) 

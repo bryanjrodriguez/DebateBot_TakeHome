@@ -47,7 +47,7 @@ jobs:
       - name: Save Docker image
         if: github.event_name != 'pull_request'
         run: |
-          docker save kopi-debate-api:${{ github.sha }} > kopi-debate-api.tar
+          docker save kopi-debate-api:${{ github.sha }} > ../kopi-debate-api.tar
 
       - name: Upload artifact
         if: github.event_name != 'pull_request'
