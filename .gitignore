@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+.env
+.env.*
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Pytest
+.cache/
+.pytest_cache/
+
+# MyPy / Pylint / Coverage
+.mypy_cache/
+coverage.xml
+htmlcov/
+.tox/
+
+# FastAPI-specific 
+instance/
+*.db
+*.sqlite3
+
+# Docker 
+*.tar
+docker-compose.override.yml
+
+# Others
+*.bak
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars

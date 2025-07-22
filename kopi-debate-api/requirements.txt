@@ -5,3 +5,5 @@ python-dotenv
 dependency-injector
 pydantic
 google-generativeai
+ddtrace[fastapi]  
+datadog 
