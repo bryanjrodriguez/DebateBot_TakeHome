@@ -33,5 +33,5 @@ class ChatRepository:
         return res.data or []
 
     def delete_chat(self, conversation_id: str):
-        # Due to CASCADE delete, this will also delete associated messages
+     
         supabase.table("conversations").delete().eq("conversation_id", conversation_id).execute() 
