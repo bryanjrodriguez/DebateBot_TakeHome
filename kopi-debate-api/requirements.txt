@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+supabase
+python-dotenv
+dependency-injector
+pydantic
+google-generativeai
