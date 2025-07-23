@@ -41,7 +41,7 @@ export default function ChatWindow() {
   if (!selectedConversation) {
     return (
       <div className="flex h-full w-full flex-col bg-background">
-        <div className="flex-1 flex flex-col items-center justify-center space-y-4 -mt-36">
+        <div className="flex-1 flex flex-col items-center justify-center space-y-4 md:-mt-36">
           <h1 className="text-3xl font-bold text-foreground text-center mb-8">
             What do you want to debate today?
           </h1>

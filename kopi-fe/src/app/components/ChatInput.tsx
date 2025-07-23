@@ -104,7 +104,7 @@ export default function ChatInput({ onSendMessage, disabled, placeholder = "Type
   }, []);
 
   return (
-    <div className="w-full flex justify-center bg-background">
+    <div className="w-full flex p-4 justify-center bg-background">
       <div className="w-full max-w-3xl pb-3">
         {!!selected.length && (
           <div className="mb-2 flex flex-wrap gap-2">

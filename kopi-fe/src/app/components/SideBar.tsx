@@ -2,7 +2,8 @@
 import { useEffect } from 'react';
 import {
   Plus,
-  Trash2
+  Trash2,
+  X
 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { useConversationContext } from '../providers/conversation-provider';
@@ -10,7 +11,11 @@ import type { Conversation } from '../types/chat';
 import SidebarItem from './SideBarItem';
 import { Loader2 } from 'lucide-react';
 
-export default function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export default function Sidebar({ onClose }: SidebarProps) {
   const {
     conversations,
     selectedConversation,
@@ -26,6 +31,7 @@ export default function Sidebar() {
 
   const handleNewChat = () => {
     selectConversation(null);
+    onClose?.();
   };
 
   const handleDeleteChat = async (id: string, e: React.MouseEvent) => {
@@ -40,24 +46,31 @@ export default function Sidebar() {
   const handleSelectChat = async (conversation: Conversation) => {
     try {
       await selectConversation(conversation);
+      onClose?.();
     } catch (err) {
       console.error('Failed to select chat:', err);
     }
   };
 
   return (
-    <div className="w-64 h-full bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border">
-      
+    <div className="w-48 lg:w-64 h-full bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border">
       <div className="p-3 border-b border-sidebar-border font-semibold flex items-center justify-between">
         <span>Kopi Debate</span>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            onClick={onClose}
+            className="sm:hidden p-2 hover:bg-sidebar-accent rounded-md"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <div className="space-y-1 border-b border-sidebar-border p-2 text-sm">
         <SidebarItem icon={Plus} label="New chat" onClick={handleNewChat} />
       </div>
 
-      
       <div className="text-xs uppercase text-sidebar-accent-foreground px-3 pt-4 pb-2 flex items-center gap-2">
         <span>Debates</span>
         {isConversationsLoading && <Loader2 className="h-4 w-4 animate-spin" />}
