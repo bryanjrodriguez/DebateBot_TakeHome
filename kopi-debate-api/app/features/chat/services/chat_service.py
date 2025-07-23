@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import uuid
 from typing import List
-from datetime import datetime
+
 from app.core.config import get_settings
 from app.features.chat.repositories.chat_repository import ChatRepository
 from app.features.chat.services.llm_service import LLMService
 from app.core.errors import Result
 from app.features.chat.models.chat_response import ChatMessageResponse, ChatSummary, DeleteResponse
+from app.features.chat.models.chat_message import ChatMessage, ChatMessageHistory
+from app.features.chat.models.chat_response import ChatHistoryResponse
 
 settings = get_settings()
 
@@ -57,10 +59,16 @@ class ChatService:
             bot_reply = bot_reply_result._value
             self.repository.save_message(conversation_id, "bot", bot_reply)
             
+            # Get the 5 most recent messages after saving the bot reply
+            recent_messages = self.repository.get_messages(conversation_id, limit=5, desc=True)
+            messages = [
+                ChatMessage(role=msg["role"], message=msg["message"])
+                for msg in recent_messages 
+            ]
+            
             return Result.ok(ChatMessageResponse(
                 conversation_id=conversation_id,
-                message=bot_reply,
-                created_at=datetime.now()
+                message=messages
             ))
         except Exception as e:
             return Result.fail(f"Failed to process message: {str(e)}")
@@ -78,16 +86,22 @@ class ChatService:
         except Exception as e:
             return Result.fail(f"Failed to fetch chats: {str(e)}")
 
-    def get_history(self, conversation_id: str, limit: int = 5, desc: bool = False) -> Result[List[ChatMessageResponse]]:
+    def get_history(self, conversation_id: str, limit: int = 5, desc: bool = False) -> Result[ChatHistoryResponse]:
         try:
             messages = self.repository.get_messages(conversation_id, limit=limit, desc=desc)
-            return Result.ok([
-                ChatMessageResponse(
-                    conversation_id=conversation_id,
+            formatted_messages = [
+                ChatMessageHistory(
+                    id=str(msg["id"]),
+                    conversation_id=msg["conversation_id"],
                     message=msg["message"],
+                    role=msg["role"],
                     created_at=msg["created_at"]
                 ) for msg in messages
-            ])
+            ]
+            return Result.ok(ChatHistoryResponse(
+                conversation_id=conversation_id,
+                message=formatted_messages
+            ))
         except Exception as e:
             return Result.fail(f"Failed to fetch chat history: {str(e)}")
 

@@ -159,7 +159,7 @@ export default function ChatWindow() {
   return (
     <div className="flex h-full w-full flex-col bg-background">
       <div className="flex-1 overflow-y-auto space-y-4 py-4">
-        {messages.map((msg) =>
+        {messages?.map((msg) =>
           msg.role === 'user' ? (
             <div key={msg.id} className="w-full flex justify-center">
               <div className="w-full max-w-3xl px-4 flex justify-end">
