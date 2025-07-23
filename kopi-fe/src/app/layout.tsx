@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "./providers/theme-provider";
 import { ConversationProvider } from "./providers/conversation-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Kopi Debate",
@@ -19,6 +20,7 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="system">
           <ConversationProvider>
             {children}
+            <Toaster position="top-right" />
           </ConversationProvider>
         </ThemeProvider>
       </body>

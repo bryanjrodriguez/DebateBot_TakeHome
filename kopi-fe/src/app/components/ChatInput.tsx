@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type {
   SpeechRecognition,
   SpeechRecognitionEvent,
 } from "../types/speech-recognition";
-import { Mic, MicOff, Send, X } from "lucide-react";
+import { Mic, Square, Send, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { useConversationContext } from "../providers/conversation-provider";
 
 interface ChatInputProps {
   onSendMessage: (message: string, images?: File[]) => void;
@@ -16,16 +18,25 @@ interface ChatInputProps {
 
 export default function ChatInput({ onSendMessage, disabled, placeholder = "Type a message..." }: ChatInputProps) {
   const [input, setInput] = useState("");
-
-  
   const [isRecording, setIsRecording] = useState(false);
   const [selected, setSelected] = useState<File[]>([]);
   
   const fileRef = useRef<HTMLInputElement>(null);
-  const textRef     = useRef<HTMLTextAreaElement>(null); 
+  const textRef = useRef<HTMLTextAreaElement>(null); 
   const recRef = useRef<SpeechRecognition | null>(null);
+  
+  const { 
+    isHistoryLoading,
+    isResponseLoading 
+  } = useConversationContext();
+  
+  const isDisabled = disabled || isHistoryLoading || isResponseLoading;
 
   const send = () => {
+    if (isRecording) {
+      stopRec();
+    }
+    
     if (!input.trim() && !selected.length) return;
   
     onSendMessage(input, selected.length ? selected : undefined);
@@ -33,7 +44,6 @@ export default function ChatInput({ onSendMessage, disabled, placeholder = "Type
     setSelected([]);
   
     if (textRef.current) {
-      //return the textarea back to the regular height
       textRef.current.style.height = 'auto';   
       textRef.current.focus();                 
     }
@@ -42,6 +52,7 @@ export default function ChatInput({ onSendMessage, disabled, placeholder = "Type
   const startRec = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return alert("Speech recognition not supported.");
+
     const rec = new SR();
     recRef.current = rec;
     rec.lang = navigator.language || "en-US";
@@ -58,8 +69,12 @@ export default function ChatInput({ onSendMessage, disabled, placeholder = "Type
         .join("");
       setInput(txt);
     };
-    rec.onend = () => setIsRecording(false);
-    rec.onerror = () => setIsRecording(false);
+    rec.onend = () => {
+      setIsRecording(false);
+    };
+    rec.onerror = () => {
+      setIsRecording(false);
+    };
     rec.start();
   };
 
@@ -76,17 +91,21 @@ export default function ChatInput({ onSendMessage, disabled, placeholder = "Type
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && !disabled) {
+    if (e.key === "Enter" && !e.shiftKey && !isDisabled) {
       e.preventDefault();
       send();
     }
   };
 
+  useEffect(() => {
+    return () => {
+      stopRec();
+    };
+  }, []);
 
   return (
-    <div className="w-full flex justify-center bg-background  ">
+    <div className="w-full flex justify-center bg-background">
       <div className="w-full max-w-3xl pb-3">
-       
         {!!selected.length && (
           <div className="mb-2 flex flex-wrap gap-2">
             {selected.map((f, i) => (
@@ -109,33 +128,31 @@ export default function ChatInput({ onSendMessage, disabled, placeholder = "Type
           </div>
         )}
 
-
-        <div className="rounded-3xl border shadow  bg-background px-4 pt-3 pb-2">
-
+        <div className="rounded-3xl border shadow bg-background px-4 pt-3 pb-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-
-            disabled={disabled}
+            placeholder={isRecording ? "Listening..." : placeholder}
+            disabled={isDisabled}
+            ref={textRef}
           />
        
           <div className="mt-2 flex items-center justify-between">
             <div className="flex items-center gap-3">
-            
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={isRecording ? stopRec : startRec}
-                disabled={disabled}
-                className={`p-1 hover:bg-muted rounded disabled:opacity-50 text-muted-foreground ${
-                  isRecording ? "text-destructive animate-pulse" : ""
-                }`}
+                disabled={isDisabled}
+                className={cn(
+                  "p-1 hover:bg-muted rounded-full disabled:opacity-50 text-muted-foreground transition-colors",
+                  isRecording && "border border-red-500 text-red-500 animate-pulse"
+                )}
               >
                 {isRecording ? (
-                  <MicOff className="h-5 w-5" />
+                  <Square className="h-5 w-5 fill-current" />
                 ) : (
                   <Mic className="h-5 w-5" />
                 )}
@@ -143,7 +160,7 @@ export default function ChatInput({ onSendMessage, disabled, placeholder = "Type
 
               <button
                 onClick={send}
-                disabled={disabled || (!input.trim() && !selected.length)}
+                disabled={isDisabled || (!input.trim() && !selected.length)}
                 className="h-8 w-8 flex items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40 hover:bg-primary/90 transition-colors"
               >
                 <Send className="h-4 w-4" />

@@ -8,13 +8,13 @@ import { ThemeToggle } from './theme-toggle';
 import { useConversationContext } from '../providers/conversation-provider';
 import type { Conversation } from '../types/chat';
 import SidebarItem from './SideBarItem';
+import { Loader2 } from 'lucide-react';
 
 export default function Sidebar() {
   const {
     conversations,
     selectedConversation,
-    isLoading,
-    error,
+    isConversationsLoading,
     fetchConversations,
     selectConversation,
     deleteConversation,
@@ -58,15 +58,10 @@ export default function Sidebar() {
       </div>
 
       
-      <div className="text-xs uppercase text-sidebar-accent-foreground px-3 pt-4 pb-2">
-        Debates {isLoading && '(Loading...)'}
+      <div className="text-xs uppercase text-sidebar-accent-foreground px-3 pt-4 pb-2 flex items-center gap-2">
+        <span>Debates</span>
+        {isConversationsLoading && <Loader2 className="h-4 w-4 animate-spin" />}
       </div>
-      
-      {error && (
-        <div className="px-3 py-2 text-red-500 text-sm">
-          Error: {error}
-        </div>
-      )}
       
       <div className="flex-1 overflow-y-auto text-sm">
         {conversations.map((conversation) => (

@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useRef } from 'react';
 import ChatInput from './ChatInput';
 import { useConversationContext } from '../providers/conversation-provider';
 import type { Conversation } from '../types/chat';
+import TypingIndicator from './TypingIndicator';
 
 const MemoChatInput = memo(ChatInput);
 
@@ -20,10 +21,9 @@ export default function ChatWindow() {
   const { 
     messages, 
     selectedConversation, 
-    isLoading, 
-    setMessages,
-    setConversations,
-    setSelectedConversation
+    isHistoryLoading,
+    isResponseLoading,
+    sendMessage,
   } = useConversationContext();
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -35,107 +35,8 @@ export default function ChatWindow() {
 
   const handleSendMessage = useCallback(async (message: string, images?: File[]) => {
     if (!message.trim() && (!images || images.length === 0)) return;
-
-    const tempId = `temp-${Date.now()}`;
-    const currentConversationId = selectedConversation?.conversation_id;
-    
-    // Only create a temporary conversation if we don't have a real one
-    if (!currentConversationId) {
-      const tempConversation: Conversation = {
-        conversation_id: tempId,
-        topic: "New Debate",
-        created_at: new Date().toISOString()
-      };
-      setConversations(prev => [...prev, tempConversation]);
-      setSelectedConversation(tempConversation);
-    }
-    
-    const userMessage = {
-      id: Date.now().toString(),
-      conversation_id: currentConversationId || tempId,
-      message: message.trim(),
-      role: 'user' as const,
-      created_at: new Date().toISOString()
-    };
-    setMessages(prev => [...prev, userMessage]);
-
-    try {
-      const response = await fetch('/api/v1/chat/message', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          conversation_id: currentConversationId || null,
-          message: message.trim()
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
-
-      const data = await response.json();
-      
-      // Only handle conversation creation if we didn't have one before
-      if (!currentConversationId) {
-        const realConversation = {
-          conversation_id: data.conversation_id,
-          topic: "New Debate", 
-          created_at: new Date().toISOString()
-        };
-        
-        setConversations((prev: Conversation[]) => {
-          const filtered = prev.filter(c => c.conversation_id !== tempId);
-          return [...filtered, realConversation];
-        });
-
-        
-        const botResponse = data.message[0];
-        if (botResponse && botResponse.role === 'bot') {
-          setMessages([
-            {
-              id: Date.now().toString(),
-              conversation_id: data.conversation_id,
-              message: userMessage.message,
-              role: 'user',
-              created_at: userMessage.created_at
-            },
-            {
-              id: (Date.now() + 1).toString(),
-              conversation_id: data.conversation_id,
-              message: botResponse.message,
-              role: botResponse.role,
-              created_at: new Date().toISOString()
-            }
-          ]);
-        }
-        
-        setSelectedConversation(realConversation);
-      } else {
-        const botResponse = data.message[0];
-        if (botResponse && botResponse.role === 'bot') {
-          setMessages(prev => [...prev, {
-            id: Date.now().toString(),
-            conversation_id: data.conversation_id,
-            message: botResponse.message,
-            role: botResponse.role,
-            created_at: new Date().toISOString()
-          }]);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to send message:', err);
-      // TODO: Show error to user
-      
-
-      if (!currentConversationId) {
-        setConversations(prev => prev.filter(c => c.conversation_id !== tempId));
-        setSelectedConversation(null);
-        setMessages([]);
-      }
-    }
-  }, [selectedConversation, setConversations, setSelectedConversation, setMessages]);
+    await sendMessage(message);
+  }, [sendMessage]);
 
   if (!selectedConversation) {
     return (
@@ -147,11 +48,19 @@ export default function ChatWindow() {
           <div className="w-full max-w-2xl px-4">
             <MemoChatInput 
               onSendMessage={handleSendMessage} 
-              disabled={isLoading} 
+              disabled={isResponseLoading} 
               placeholder="Type your debate topic here..."
             />
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (isHistoryLoading) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center bg-background">
+        <TypingIndicator />
       </div>
     );
   }
@@ -179,10 +88,10 @@ export default function ChatWindow() {
           )
         )}
 
-        {isLoading && (
+        {isResponseLoading && (
           <div className="w-full flex justify-center">
             <div className="w-full max-w-3xl px-4">
-              <p className="text-sm text-muted-foreground">Typing…</p>
+              <TypingIndicator />
             </div>
           </div>
         )}
@@ -191,7 +100,7 @@ export default function ChatWindow() {
 
       <MemoChatInput 
         onSendMessage={handleSendMessage} 
-        disabled={isLoading} 
+        disabled={isResponseLoading} 
         placeholder="Type your message here..."
       />
     </div>

@@ -8,11 +8,13 @@ interface ConversationContextType {
   conversations: Conversation[];
   selectedConversation: Conversation | null;
   messages: Message[];
-  isLoading: boolean;
-  error: string | null;
+  isHistoryLoading: boolean;
+  isResponseLoading: boolean;
+  isConversationsLoading: boolean;
   fetchConversations: () => Promise<void>;
   selectConversation: (conversation: Conversation | null) => Promise<void>;
   deleteConversation: (conversationId: string) => Promise<void>;
+  sendMessage: (message: string) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
   setSelectedConversation: React.Dispatch<React.SetStateAction<Conversation | null>>;

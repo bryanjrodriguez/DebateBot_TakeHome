@@ -8,7 +8,8 @@ export default async function handler(
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
-  const { conversationId, limit = 20 } = req.query
+  //ran out of time to implement pagination :(
+  const { conversationId, limit = 40 } = req.query
 
   try {
     const response = await fetch(
