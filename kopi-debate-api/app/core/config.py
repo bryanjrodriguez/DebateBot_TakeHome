@@ -7,7 +7,7 @@ class Settings:
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
     PROJECT_NAME: str = "Kopi Debate API"
     API_PREFIX: str = "/api/v1"
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_MODEL: str = "gemini-2.5-flash"
     CHAT_HISTORY_WINDOW: int = 5
 
 @lru_cache
