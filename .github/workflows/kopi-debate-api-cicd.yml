@@ -1,18 +1,18 @@
-name: Kopi Debate API CD
+name: Kopi Debate API CICD
 
 on:
-  workflow_run:
-    workflows: ["Kopi Debate API CI"]
-    types:
-      - completed
-    branches:
-      - main
+  push:
+    branches: [ main ]
+    paths:
+      - 'kopi-debate-api/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'kopi-debate-api/**'
 
 jobs:
-  deploy:
+  build-test-deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    environment: production
     defaults:
       run:
         working-directory: ./kopi-debate-api
@@ -20,19 +20,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          name: kopi-debate-api-image
-          path: .
-          run-id: ${{ github.event.workflow_run.id }}
+          python-version: '3.11'
+          cache: 'pip'
 
-      - name: Extract and load Docker image
+      - name: Install dependencies
         run: |
-          unzip kopi-debate-api-image.zip
-          docker load < kopi-debate-api.tar
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
 
+      - name: Run tests
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          python -m pytest tests/
+
+      - name: Build Docker image
+        run: |
+          docker build -t kopi-debate-api:${{ github.sha }} .
+
+      
       - name: Configure AWS credentials
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -40,10 +54,12 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Tag and push image to Amazon ECR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
@@ -55,6 +71,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Deploy to ECS
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
           SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
@@ -62,4 +79,4 @@ jobs:
           aws ecs update-service \
             --cluster $CLUSTER_NAME \
             --service $SERVICE_NAME \
-            --force-new-deployment
+            --force-new-deployment 

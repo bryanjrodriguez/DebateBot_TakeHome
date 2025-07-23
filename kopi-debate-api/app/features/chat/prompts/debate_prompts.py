@@ -14,6 +14,9 @@ Return ONLY valid JSON with two keys:
 - 'topic': The core debate topic as a short phrase
 - 'stance': The position YOU should argue for (not the user's position)
 
+If you CANNOT determine a clear topic or stance, use EXACTLY:
+{"topic": "INVALID", "stance": "INVALID"}
+
 Example 1:
 User: "Let's debate climate change, I'll argue it's real, you take the opposing view"
 Response: {"topic": "Climate Change", "stance": "Climate change is not real"}
@@ -24,7 +27,15 @@ Response: {"topic": "Earth's Shape", "stance": "The earth is flat"}
 
 Example 3:
 User: "we will have a debate i will argue the earth is round you will argue the earth is flat"
-Response: {"topic": "Earth's Shape", "stance": "The earth is flat"}"""
+Response: {"topic": "Earth's Shape", "stance": "The earth is flat"}
+
+Example 4:
+User: "Hello how are you?"
+Response: {"topic": "INVALID", "stance": "INVALID"}
+
+Example 5:
+User: "I'm not sure what to debate"
+Response: {"topic": "INVALID", "stance": "INVALID"}"""
 
 
 def build_debate_system_prompt(topic: str, stance: str) -> str:

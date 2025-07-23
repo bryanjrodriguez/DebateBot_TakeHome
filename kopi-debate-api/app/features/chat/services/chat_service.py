@@ -28,7 +28,11 @@ class ChatService:
             # Get or create conversation metadata
             meta = self.repository.get_conversation_meta(conversation_id)
             if not meta:
-                meta_obj = self.llm_service.extract_meta_from_message(message)
+                meta_result = self.llm_service.extract_meta_from_message(message)
+                if meta_result._is_error:
+                    return Result.fail(f"Failed to extract conversation metadata: {meta_result._value.error}")
+                
+                meta_obj = meta_result._value
                 self.repository.save_conversation_meta(
                     conversation_id=conversation_id,
                     topic=meta_obj.topic,
@@ -40,13 +44,17 @@ class ChatService:
             
             history = self.repository.get_messages(conversation_id, limit=self.max_history, desc=True)
             
-            bot_reply = self.llm_service.generate_debate_response(
+            bot_reply_result = self.llm_service.generate_debate_response(
                 user_message=message,
                 chat_history=history,
                 topic=meta["topic"],
                 stance=meta["stance"]
             )
-
+            
+            if bot_reply_result._is_error:
+                return Result.fail(f"Failed to generate bot response: {bot_reply_result._value.error}")
+            
+            bot_reply = bot_reply_result._value
             self.repository.save_message(conversation_id, "bot", bot_reply)
             
             return Result.ok(ChatMessageResponse(
