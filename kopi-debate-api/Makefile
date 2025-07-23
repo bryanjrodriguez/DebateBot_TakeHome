@@ -21,9 +21,8 @@ down:
 clean:
 	docker-compose down -v --remove-orphans
 
-# For local testing
-# test:
-# 	pytest
 
 test:
-	@echo "No tests implemented yet. Add tests in the tests/ directory."
+	pytest
+
+

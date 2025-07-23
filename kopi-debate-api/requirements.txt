@@ -9,3 +9,5 @@ ddtrace[fastapi]
 datadog 
 pytest
 pytest-asyncio
+pytest-cov
+httpx
