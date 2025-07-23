@@ -11,26 +11,12 @@ kopi-monorepo/
 
 See individual project READMEs for detailed documentation.
 
-## Quick Start
-
-```bash
-# Install all dependencies
-make install
-
-# Start both frontend and backend
-make dev
-```
-
-This will start:
-- Frontend at http://localhost:3000
-- Backend API at http://localhost:8000
-
 ## Prerequisites
 1. Node.js 20.x or later
 2. Python 3.11 or later
 3. Docker and Docker Compose
 4. Make
-5. Supabase account (for database)
+5. Supabase account (for database see more in kopi-debate-api readme)
 
 ## Environment Setup
 
