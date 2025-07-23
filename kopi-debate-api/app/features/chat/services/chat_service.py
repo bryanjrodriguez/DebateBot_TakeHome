@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import uuid
 from typing import List
 
@@ -32,7 +33,9 @@ class ChatService:
             if not meta:
                 meta_result = self.llm_service.extract_meta_from_message(message)
                 if meta_result._is_error:
-                    return Result.fail(f"Failed to extract conversation metadata: {meta_result._value.error}")
+                    error_msg = f"Failed to extract conversation metadata: {meta_result._value.error}"
+                    logging.error(f"Error in conversation {conversation_id}: {error_msg}")
+                    return Result.fail(error_msg)
                 
                 meta_obj = meta_result._value
                 self.repository.save_conversation_meta(
@@ -54,7 +57,9 @@ class ChatService:
             )
             
             if bot_reply_result._is_error:
-                return Result.fail(f"Failed to generate bot response: {bot_reply_result._value.error}")
+                error_msg = f"Failed to generate bot response: {bot_reply_result._value.error}"
+                logging.error(f"Error in conversation {conversation_id}: {error_msg}")
+                return Result.fail(error_msg)
             
             bot_reply = bot_reply_result._value
             self.repository.save_message(conversation_id, "bot", bot_reply)
@@ -71,6 +76,7 @@ class ChatService:
                 message=messages
             ))
         except Exception as e:
+            logging.error(f"Failed to process message for conversation {conversation_id}: {str(e)}", exc_info=True)
             return Result.fail(f"Failed to process message: {str(e)}")
 
     def get_chats(self) -> Result[List[ChatSummary]]:
@@ -84,6 +90,7 @@ class ChatService:
                 ) for chat in chats
             ])
         except Exception as e:
+            logging.error(f"Failed to fetch chats: {str(e)}", exc_info=True)
             return Result.fail(f"Failed to fetch chats: {str(e)}")
 
     def get_history(self, conversation_id: str, limit: int = 5, desc: bool = False) -> Result[ChatHistoryResponse]:
@@ -103,6 +110,7 @@ class ChatService:
                 message=formatted_messages
             ))
         except Exception as e:
+            logging.error(f"Failed to fetch chat history for {conversation_id}: {str(e)}", exc_info=True)
             return Result.fail(f"Failed to fetch chat history: {str(e)}")
 
     def delete_chat(self, conversation_id: str) -> Result[DeleteResponse]:
@@ -110,4 +118,5 @@ class ChatService:
             self.repository.delete_chat(conversation_id)
             return Result.ok(DeleteResponse())
         except Exception as e:
+            logging.error(f"Failed to delete chat {conversation_id}: {str(e)}", exc_info=True)
             return Result.fail(f"Failed to delete chat: {str(e)}")

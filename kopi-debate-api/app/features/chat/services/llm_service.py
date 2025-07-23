@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import google.generativeai as genai
 from typing import Any, Dict, List
 from pydantic import ValidationError
@@ -30,13 +31,19 @@ class LLMService:
             data = ChatMeta.model_validate_json(cleaned_response)
 
             if data.topic == "INVALID" or data.stance == "INVALID":
-                return Result.fail("Could not extract valid topic and stance from message")
+                error_msg = "Could not extract valid topic and stance from message"
+                logging.error(f"{error_msg}: {cleaned_response}")
+                return Result.fail(error_msg)
             
             return Result.ok(data)
         except google.api_core.exceptions.GoogleAPIError as e:
-            return Result.fail(f"Gemini API error: {str(e)}")
+            error_msg = f"Gemini API error: {str(e)}"
+            logging.error(error_msg, exc_info=True)
+            return Result.fail(error_msg)
         except Exception as e:
-            return Result.fail(f"Unexpected error during meta extraction: {str(e)}")
+            error_msg = f"Unexpected error during meta extraction: {str(e)}"
+            logging.error(error_msg, exc_info=True)
+            return Result.fail(error_msg)
 
     def generate_debate_response(
         self, 
@@ -57,9 +64,13 @@ class LLMService:
             response = chat.send_message(user_message)
             return Result.ok(response.text.strip())
         except google.api_core.exceptions.GoogleAPIError as e:
-            return Result.fail(f"Gemini API error: {str(e)}")
+            error_msg = f"Gemini API error: {str(e)}"
+            logging.error(error_msg, exc_info=True)
+            return Result.fail(error_msg)
         except Exception as e:
-            return Result.fail(f"Unexpected error during response generation: {str(e)}")
+            error_msg = f"Unexpected error during response generation: {str(e)}"
+            logging.error(error_msg, exc_info=True)
+            return Result.fail(error_msg)
 
     def _clean_json_response(self, text: str) -> str:
         #remove markdown 

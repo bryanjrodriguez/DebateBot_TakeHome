@@ -4,7 +4,7 @@ help:
 	@echo "Available commands:"
 	@echo "  make install   Install all requirements to run the service."
 	@echo "  make test      Run tests."
-	@echo "  make run       Run the service and all related services (such as a db) in Docker."
+	@echo "  make run       Run the service and all related services."
 	@echo "  make down      Teardown of all running services."
 	@echo "  make clean     Teardown and removal of all containers."
 
