@@ -3,7 +3,7 @@
 ## Live Demo
 
 - **Website**: [https://bryanrodriguez.dev](https://bryanrodriguez.dev)
-- **Live API**: [https://api.bryanbrodriguez.dev](https://api.bryanbrodriguez.dev)
+- **Live API**: [https://api.bryanrodriguez.dev](https://api.bryanbrodriguez.dev)
 
 A debate platform monorepo containing the following components:
 
